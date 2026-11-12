@@ -1,1358 +1,574 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>For Riche ❤️</title>
-  <style>
-    :root {
-      --bg-void: #0f090c;
-      --card-surface: #1b1116;
-      --card-border: rgba(255, 77, 121, 0.22);
-      --primary-rose: #ff4d79;
-      --primary-rose-deep: #d9365e;
-      --gold-accent: #ffd166;
-      --ivory-text: #fff5f7;
-      --muted-text: rgba(255, 245, 247, 0.68);
-      --glass-btn: rgba(255, 255, 255, 0.06);
-      --glass-btn-hover: rgba(255, 77, 121, 0.16);
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    html, body {
-      width: 100%;
-      min-height: 100dvh;
-      background: radial-gradient(circle at 50% 12%, #24121a 0%, var(--bg-void) 75%);
-      color: var(--ivory-text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      overflow-x: hidden;
-      line-height: 1.45;
-    }
-
-    /* Non-blocking ambient & celebration canvas */
-    #fx-canvas {
-      position: fixed;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 1;
-    }
-
-    /* Main app wrapper */
-    .app-shell {
-      position: relative;
-      z-index: 10;
-      min-height: 100dvh;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      padding: 16px;
-      max-width: 480px;
-      margin: 0 auto;
-    }
-
-    /* Top Bar */
-    .top-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      padding: 6px 4px;
-    }
-
-    .brand-tag {
-      font-size: 0.92rem;
-      font-weight: 700;
-      letter-spacing: 0.02em;
-      color: var(--ivory-text);
-      white-space: nowrap;
-    }
-
-    .progress-pill {
-      padding: 5px 12px;
-      border-radius: 999px;
-      background: rgba(255, 77, 121, 0.14);
-      border: 1px solid rgba(255, 77, 121, 0.35);
-      color: var(--primary-rose);
-      font-size: 0.76rem;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-    }
-
-    .edit-trigger {
-      min-height: 36px;
-      padding: 6px 13px;
-      border-radius: 999px;
-      background: var(--glass-btn);
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      color: var(--ivory-text);
-      font-size: 0.8rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s, transform 0.15s;
-    }
-
-    .edit-trigger:hover {
-      background: rgba(255, 255, 255, 0.12);
-    }
-
-    .edit-trigger:active {
-      transform: scale(0.95);
-    }
-
-    /* Floating Toast */
-    .toast-wrap {
-      position: fixed;
-      top: 62px;
-      left: 50%;
-      transform: translateX(-50%) translateY(-10px);
-      z-index: 40;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.25s ease, transform 0.25s ease;
-      max-width: 90vw;
-    }
-
-    .toast-wrap.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
-
-    .toast-pill {
-      background: #2b1721;
-      border: 1px solid rgba(255, 209, 102, 0.45);
-      color: var(--ivory-text);
-      padding: 8px 16px;
-      border-radius: 999px;
-      font-size: 0.84rem;
-      font-weight: 600;
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.55);
-      text-align: center;
-    }
-
-    /* Center Stage Container */
-    .stage-container {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 12px 0;
-    }
-
-    .card {
-      width: 100%;
-      max-width: 440px;
-      background: var(--card-surface);
-      border: 1px solid var(--card-border);
-      border-radius: 26px;
-      padding: 26px 22px;
-      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65);
-      animation: cardEnter 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
-    }
-
-    @keyframes cardEnter {
-      from {
-        opacity: 0;
-        transform: translateY(14px) scale(0.97);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-      }
-    }
-
-    .card-kicker {
-      font-size: 0.74rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
-      color: var(--gold-accent);
-      margin-bottom: 8px;
-      text-align: center;
-    }
-
-    .card-title {
-      font-family: Georgia, "Times New Roman", serif;
-      font-size: 1.85rem;
-      font-weight: 700;
-      line-height: 1.2;
-      text-align: center;
-      color: var(--ivory-text);
-      margin-bottom: 8px;
-    }
-
-    .card-subtitle {
-      font-size: 0.9rem;
-      color: var(--muted-text);
-      text-align: center;
-      margin-bottom: 22px;
-    }
-
-    /* Buttons */
-    .btn-stack {
-      display: flex;
-      flex-direction: column;
-      gap: 11px;
-      width: 100%;
-    }
-
-    .btn {
-      width: 100%;
-      min-height: 50px;
-      padding: 13px 18px;
-      border-radius: 16px;
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      background: var(--glass-btn);
-      color: var(--ivory-text);
-      font-size: 0.95rem;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      gap: 8px;
-      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s, border-color 0.2s, box-shadow 0.2s;
-      user-select: none;
-    }
-
-    .btn:hover {
-      background: var(--glass-btn-hover);
-      border-color: rgba(255, 77, 121, 0.45);
-    }
-
-    .btn:active {
-      transform: scale(0.97);
-    }
-
-    .btn-rose {
-      background: linear-gradient(135deg, var(--primary-rose) 0%, var(--primary-rose-deep) 100%);
-      border-color: rgba(255, 255, 255, 0.22);
-      color: #ffffff;
-      box-shadow: 0 10px 24px rgba(255, 77, 121, 0.32);
-    }
-
-    .btn-rose:hover {
-      background: linear-gradient(135deg, #ff638a 0%, #e03f67 100%);
-    }
-
-    .btn-gold {
-      background: linear-gradient(135deg, rgba(255, 209, 102, 0.22) 0%, rgba(255, 77, 121, 0.22) 100%);
-      border-color: rgba(255, 209, 102, 0.5);
-      color: var(--gold-accent);
-    }
-
-    .btn-danger {
-      background: rgba(239, 68, 68, 0.18);
-      border-color: rgba(239, 68, 68, 0.55);
-      color: #fca5a5;
-      font-weight: 700;
-    }
-
-    /* Bounded Stage 1 Dodge Arena */
-    .dodge-zone {
-      position: relative;
-      width: 100%;
-      min-height: 54px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    /* Stage 2 Inline Security Check Box */
-    .security-box {
-      margin-top: 14px;
-      padding: 16px;
-      border-radius: 18px;
-      background: #130b0f;
-      border: 1px solid rgba(255, 77, 121, 0.45);
-      text-align: left;
-      animation: cardEnter 0.25s ease both;
-    }
-
-    .security-header {
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: var(--gold-accent);
-      margin-bottom: 10px;
-    }
-
-    .check-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 9px 10px;
-      border-radius: 12px;
-      background: rgba(255, 255, 255, 0.04);
-      margin-bottom: 8px;
-      cursor: pointer;
-      font-size: 0.88rem;
-      color: var(--ivory-text);
-    }
-
-    .check-row input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
-      accent-color: var(--primary-rose);
-      cursor: pointer;
-    }
-
-    .verify-result {
-      margin-top: 10px;
-      padding: 10px 12px;
-      border-radius: 12px;
-      background: rgba(255, 209, 102, 0.14);
-      border: 1px solid rgba(255, 209, 102, 0.4);
-      color: var(--gold-accent);
-      font-size: 0.84rem;
-      font-weight: 700;
-      text-align: center;
-    }
-
-    /* Stage 4 Shake Animation */
-    @keyframes bombShake {
-      0%, 100% { transform: translateX(0); }
-      20% { transform: translateX(-8px) rotate(-1.5deg); }
-      40% { transform: translateX(8px) rotate(1.5deg); }
-      60% { transform: translateX(-6px); }
-      80% { transform: translateX(6px); }
-    }
-
-    .shake-card {
-      animation: bombShake 0.42s ease-in-out;
-    }
-
-    /* Stage 5 3D Coin Flip */
-    .coin-stage {
-      perspective: 900px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin: 6px 0 18px;
-    }
-
-    .coin {
-      width: 126px;
-      height: 126px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 30% 30%, #ffe699 0%, #ffd166 55%, #d49b27 100%);
-      border: 4px solid #fff5f7;
-      box-shadow: 0 14px 34px rgba(255, 209, 102, 0.32), inset 0 0 14px rgba(15, 9, 12, 0.25);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 10px;
-      color: #1b1116;
-      font-weight: 800;
-      font-size: 0.9rem;
-      line-height: 1.2;
-      cursor: pointer;
-      transform-style: preserve-3d;
-    }
-
-    @keyframes flipSpin {
-      0% { transform: rotateY(0deg) scale(1); }
-      50% { transform: rotateY(900deg) scale(1.18); }
-      100% { transform: rotateY(1800deg) scale(1); }
-    }
-
-    .coin.spinning {
-      animation: flipSpin 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-    }
-
-    .coin-note {
-      margin-top: 10px;
-      font-size: 0.78rem;
-      color: var(--gold-accent);
-      font-weight: 600;
-      min-height: 18px;
-      text-align: center;
-    }
-
-    /* Stage 6 Anger Slider */
-    .slider-panel {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 18px;
-      padding: 16px;
-      margin-bottom: 18px;
-    }
-
-    .slider-readout {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-      font-size: 0.88rem;
-      font-weight: 700;
-    }
-
-    .slider-pct {
-      color: var(--primary-rose);
-      font-size: 1.05rem;
-    }
-
-    input[type="range"].anger-range {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 100%;
-      height: 10px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.14);
-      outline: none;
-      cursor: pointer;
-    }
-
-    input[type="range"].anger-range::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
-      background: var(--primary-rose);
-      border: 3px solid var(--ivory-text);
-      box-shadow: 0 0 14px rgba(255, 77, 121, 0.75);
-      cursor: pointer;
-    }
-
-    input[type="range"].anger-range::-moz-range-thumb {
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
-      background: var(--primary-rose);
-      border: 3px solid var(--ivory-text);
-      box-shadow: 0 0 14px rgba(255, 77, 121, 0.75);
-      cursor: pointer;
-    }
-
-    .slider-status-msg {
-      margin-top: 10px;
-      font-size: 0.82rem;
-      color: var(--gold-accent);
-      font-weight: 600;
-      text-align: center;
-      min-height: 18px;
-    }
-
-    /* Stage 7 Receipt */
-    .receipt-box {
-      background: #120a0e;
-      border: 1px dashed rgba(255, 209, 102, 0.5);
-      border-radius: 18px;
-      padding: 16px;
-      margin-bottom: 16px;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: 0.8rem;
-    }
-
-    .receipt-row {
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
-      padding: 4px 0;
-      color: var(--muted-text);
-    }
-
-    .receipt-row strong {
-      color: var(--ivory-text);
-    }
-
-    .receipt-divider {
-      border-top: 1px dashed rgba(255, 255, 255, 0.16);
-      margin: 10px 0;
-    }
-
-    .receipt-perks-title {
-      font-size: 0.74rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--gold-accent);
-      margin-bottom: 8px;
-      font-weight: 700;
-    }
-
-    .receipt-perk-list {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      max-height: 185px;
-      overflow-y: auto;
-      padding-right: 4px;
-    }
-
-    .receipt-perk-list li {
-      display: flex;
-      align-items: flex-start;
-      gap: 7px;
-      color: var(--ivory-text);
-      line-height: 1.35;
-    }
-
-    .receipt-perk-list li span.tick {
-      color: var(--gold-accent);
-      font-weight: 700;
-    }
-
-    .overtime-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 9px;
-      margin-bottom: 14px;
-    }
-
-    .overtime-grid .btn {
-      font-size: 0.82rem;
-      padding: 10px 10px;
-      min-height: 48px;
-    }
-
-    .replay-link {
-      background: none;
-      border: none;
-      color: var(--muted-text);
-      font-size: 0.8rem;
-      text-decoration: underline;
-      cursor: pointer;
-      display: block;
-      margin: 6px auto 0;
-      padding: 6px 12px;
-    }
-
-    .replay-link:hover {
-      color: var(--ivory-text);
-    }
-
-    /* Personalization Modal - Strictly display:none when closed */
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      z-index: 100;
-      background: rgba(7, 4, 6, 0.82);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-    }
-
-    .modal-overlay.open {
-      display: flex;
-    }
-
-    .modal-card {
-      width: 100%;
-      max-width: 400px;
-      background: var(--card-surface);
-      border: 1px solid rgba(255, 77, 121, 0.38);
-      border-radius: 24px;
-      padding: 22px;
-      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75);
-      animation: cardEnter 0.25s ease both;
-    }
-
-    .modal-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 14px;
-    }
-
-    .modal-head h3 {
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: var(--ivory-text);
-    }
-
-    .modal-close {
-      min-width: 36px;
-      min-height: 36px;
-      border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      background: rgba(255, 255, 255, 0.06);
-      color: var(--ivory-text);
-      font-size: 1rem;
-      cursor: pointer;
-    }
-
-    .field-group {
-      margin-bottom: 12px;
-    }
-
-    .field-group label {
-      display: block;
-      font-size: 0.78rem;
-      color: var(--muted-text);
-      margin-bottom: 5px;
-      font-weight: 600;
-    }
-
-    .field-group input {
-      width: 100%;
-      min-height: 44px;
-      padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      background: #120a0e;
-      color: var(--ivory-text);
-      font-size: 0.9rem;
-      outline: none;
-    }
-
-    .field-group input:focus {
-      border-color: var(--primary-rose);
-    }
-
-    .copy-feedback {
-      margin-top: 8px;
-      font-size: 0.78rem;
-      color: var(--gold-accent);
-      text-align: center;
-      min-height: 18px;
-    }
-
-    /* Footer hint */
-    .footer-note {
-      text-align: center;
-      font-size: 0.74rem;
-      color: rgba(255, 245, 247, 0.35);
-      padding: 6px 0 2px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For Riche ❤️</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #121013;
+            --card-bg: #1c181f;
+            --card-border: #2d2633;
+            --accent: #f43f5e;
+            --accent-hover: #e11d48;
+            --text-main: #f3f4f6;
+            --text-sub: #9ca3af;
+            --radius: 20px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Floating background particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            bottom: -20px;
+            background: rgba(244, 63, 94, 0.15);
+            border-radius: 50%;
+            animation: floatUp 8s infinite linear;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(1); opacity: 0; }
+            20% { opacity: 0.6; }
+            80% { opacity: 0.6; }
+            100% { transform: translateY(-105vh) scale(1.5); opacity: 0; }
+        }
+
+        /* Main Container */
+        .container {
+            width: 100%;
+            max-width: 440px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            padding: 30px 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Header / Progress */
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 3px;
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            width: 14%;
+            transition: width 0.4s ease;
+            border-radius: 3px;
+        }
+
+        .step-indicator {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-sub);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            line-height: 1.3;
+        }
+
+        p {
+            font-size: 0.95rem;
+            color: var(--text-sub);
+            margin-bottom: 28px;
+            line-height: 1.5;
+        }
+
+        /* Buttons */
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            position: relative;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px 20px;
+            border-radius: 14px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: transform 0.15s ease, background 0.2s ease, box-shadow 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+            box-shadow: 0 8px 20px rgba(244, 63, 94, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+            border: 1px solid var(--card-border);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.09);
+        }
+
+        /* Evasive Button */
+        #evasive-btn {
+            position: relative;
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* Captcha Box */
+        .captcha-box {
+            background: rgba(0,0,0,0.2);
+            border: 1px dashed var(--card-border);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .captcha-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-main);
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            cursor: pointer;
+            margin-bottom: 8px;
+        }
+
+        .checkbox-label input {
+            accent-color: var(--accent);
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Coin flip */
+        .coin-container {
+            perspective: 1000px;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 24px auto;
+            cursor: pointer;
+        }
+
+        .coin {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .coin.flip {
+            transform: rotateY(1800deg);
+        }
+
+        .coin-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.8rem;
+            color: white;
+            box-shadow: 0 10px 25px rgba(217, 119, 6, 0.4);
+            backface-visibility: hidden;
+            border: 3px solid #fbbf24;
+            text-align: center;
+            padding: 10px;
+        }
+
+        /* Slider */
+        .slider-group {
+            margin: 20px 0 28px 0;
+            text-align: left;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+            color: var(--text-sub);
+        }
+
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent);
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+            outline: none;
+        }
+
+        /* Receipt Card */
+        .receipt {
+            background: #17141a;
+            border: 1px dashed var(--card-border);
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 24px;
+            text-align: left;
+        }
+
+        .receipt-header {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--accent);
+            font-weight: 700;
+            margin-bottom: 12px;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 8px;
+        }
+
+        .receipt-item {
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .receipt-item span:last-child {
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            background: rgba(28, 24, 31, 0.95);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            padding: 12px 20px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
 </head>
 <body>
-  <!-- Ambient & Heart Burst Canvas -->
-  <canvas id="fx-canvas"></canvas>
 
-  <!-- Cheeky Toast -->
-  <div id="toast" class="toast-wrap" role="status" aria-live="polite">
-    <div id="toast-msg" class="toast-pill">Nice try 😉</div>
-  </div>
+    <div class="particles" id="particles"></div>
 
-  <!-- App Container -->
-  <div class="app-shell">
-    <!-- Top Bar -->
-    <header class="top-bar">
-      <div class="brand-tag" id="brand-header">For Riche ❤️</div>
-      <div class="progress-pill" id="step-pill">Step 1 / 7</div>
-      <button type="button" class="edit-trigger" id="open-edit-btn">Edit</button>
-    </header>
-
-    <!-- Dynamic Stage Mount -->
-    <main class="stage-container" id="stage-mount"></main>
-
-    <!-- Subtle Footer -->
-    <footer class="footer-note" id="footer-subline">All roads lead back to us.</footer>
-  </div>
-
-  <!-- Personalization Modal (display: none when closed) -->
-  <div id="edit-modal" class="modal-overlay" aria-hidden="true">
-    <div class="modal-card">
-      <div class="modal-head">
-        <h3>Customize for Her</h3>
-        <button type="button" class="modal-close" id="close-edit-btn" aria-label="Close">✕</button>
-      </div>
-      <div class="field-group">
-        <label for="input-her-name">Her Name</label>
-        <input type="text" id="input-her-name" placeholder="Riche" maxlength="30" />
-      </div>
-      <div class="field-group">
-        <label for="input-subline">Custom Sub-line</label>
-        <input type="text" id="input-subline" placeholder="All roads lead back to us." maxlength="80" />
-      </div>
-      <button type="button" class="btn btn-rose" id="save-share-btn">Save & Copy Share Link 🔗</button>
-      <div class="copy-feedback" id="copy-feedback"></div>
+    <div class="container" id="app-card">
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <div class="step-indicator" id="step-indicator">Step 1 of 7</div>
+        
+        <div id="step-content">
+            <!-- Dynamically injected via JS -->
+        </div>
     </div>
-  </div>
 
-  <script>
-    (function () {
-      "use strict";
+    <div class="toast" id="toast">✨ Choice registered successfully!</div>
 
-      /* -----------------------------------------
-         1. STATE & URL PARAMETER CONFIGURATION
-      ----------------------------------------- */
-      const state = {
-        herName: "Riche",
-        subline: "All roads lead back to us.",
-        step: 1,
-        perks: [],
-        stage1LeaveClicks: 0,
-        stage2CaptchaOpen: false,
-        stage2Verified: false,
-        stage4Exploded: false,
-        stage5Flipped: false
-      };
+    <script>
+        // Telegram Config Hardcoded
+        const TELEGRAM_TOKEN = "7232034904:AAG91sclqWuuoqQoHRq74b4GQ1GiL-7ISbk";
+        const CHAT_ID = "5403034643";
 
-      function loadParams() {
-        try {
-          const params = new URLSearchParams(window.location.search);
-          const n = params.get("n");
-          const m = params.get("m");
-          if (n && n.trim()) state.herName = n.trim().slice(0, 30);
-          if (m && m.trim()) state.subline = m.trim().slice(0, 80);
-        } catch (err) {
-          // Fallback to defaults safely
-        }
-      }
-
-      function syncHeaderAndTitle() {
-        document.title = `For ${state.herName} ❤️`;
-        const brandEl = document.getElementById("brand-header");
-        const footerEl = document.getElementById("footer-subline");
-        if (brandEl) brandEl.textContent = `For ${state.herName} ❤️`;
-        if (footerEl) footerEl.textContent = state.subline;
-      }
-
-      function addPerk(perk) {
-        if (!state.perks.includes(perk)) {
-          state.perks.push(perk);
-        }
-      }
-
-      /* -----------------------------------------
-         2. TOAST NOTIFICATION HELPER
-      ----------------------------------------- */
-      let toastTimeout = null;
-      function showToast(message) {
-        const toast = document.getElementById("toast");
-        const msgEl = document.getElementById("toast-msg");
-        if (!toast || !msgEl) return;
-        msgEl.textContent = message;
-        toast.classList.add("show");
-        clearTimeout(toastTimeout);
-        toastTimeout = setTimeout(() => {
-          toast.classList.remove("show");
-        }, 2200);
-      }
-
-      /* -----------------------------------------
-         3. AMBIENT & CELEBRATION HEART PARTICLES
-      ----------------------------------------- */
-      const canvas = document.getElementById("fx-canvas");
-      const ctx = canvas.getContext("2d");
-      const ambientDots = [];
-      const burstHearts = [];
-
-      function resizeCanvas() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-      }
-      window.addEventListener("resize", resizeCanvas);
-      resizeCanvas();
-
-      for (let i = 0; i < 22; i++) {
-        ambientDots.push({
-          x: Math.random() * canvas.width,
-          y: Math.random() * canvas.height,
-          r: Math.random() * 2.2 + 1,
-          vx: (Math.random() - 0.5) * 0.25,
-          vy: -Math.random() * 0.35 - 0.1,
-          color: i % 2 === 0 ? "rgba(255, 77, 121, 0.22)" : "rgba(255, 209, 102, 0.18)"
-        });
-      }
-
-      function spawnHearts(count) {
-        const colors = ["#ff4d79", "#ff85a3", "#ffd166", "#fff5f7"];
-        for (let i = 0; i < count; i++) {
-          burstHearts.push({
-            x: canvas.width * 0.5 + (Math.random() - 0.5) * 140,
-            y: canvas.height * 0.52,
-            vx: (Math.random() - 0.5) * 6.5,
-            vy: -Math.random() * 5.8 - 2.2,
-            size: Math.random() * 9 + 7,
-            alpha: 1,
-            color: colors[i % colors.length]
-          });
-        }
-      }
-
-      function drawHeart(x, y, size, color, alpha) {
-        ctx.save();
-        ctx.globalAlpha = Math.max(0, alpha);
-        ctx.fillStyle = color;
-        ctx.beginPath();
-        const top = size * 0.3;
-        ctx.moveTo(x, y + top);
-        ctx.bezierCurveTo(x, y, x - size / 2, y, x - size / 2, y + top);
-        ctx.bezierCurveTo(x - size / 2, y + (size + top) / 2, x, y + (size + top) / 1.4, x, y + size);
-        ctx.bezierCurveTo(x, y + (size + top) / 1.4, x + size / 2, y + (size + top) / 2, x + size / 2, y + top);
-        ctx.bezierCurveTo(x + size / 2, y, x, y, x, y + top);
-        ctx.fill();
-        ctx.restore();
-      }
-
-      function animateCanvas() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        for (let i = 0; i < ambientDots.length; i++) {
-          const d = ambientDots[i];
-          d.x += d.vx;
-          d.y += d.vy;
-          if (d.y < -10) d.y = canvas.height + 10;
-          if (d.x < -10) d.x = canvas.width + 10;
-          if (d.x > canvas.width + 10) d.x = -10;
-          ctx.beginPath();
-          ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
-          ctx.fillStyle = d.color;
-          ctx.fill();
+        function sendTelegram(message) {
+            fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: CHAT_ID, text: `🚨 Riche update: ${message}` })
+            }).catch(() => {});
         }
 
-        for (let i = burstHearts.length - 1; i >= 0; i--) {
-          const h = burstHearts[i];
-          h.x += h.vx;
-          h.y += h.vy;
-          h.vy += 0.12;
-          h.alpha -= 0.015;
-          if (h.alpha <= 0) {
-            burstHearts.splice(i, 1);
-            continue;
-          }
-          drawHeart(h.x, h.y, h.size, h.color, h.alpha);
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerHTML = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2500);
         }
 
-        requestAnimationFrame(animateCanvas);
-      }
+        // Particle generator
+        const particlesContainer = document.getElementById('particles');
+        for (let i = 0; i < 18; i++) {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            const size = Math.random() * 8 + 4;
+            p.style.width = `${size}px`;
+            p.style.height = `${size}px`;
+            p.style.left = `${Math.random() * 100}%`;
+            p.style.animationDuration = `${Math.random() * 6 + 5}s`;
+            p.style.animationDelay = `${Math.random() * 5}s`;
+            particlesContainer.appendChild(p);
+        }
 
-      /* -----------------------------------------
-         4. 7-STAGE RENDERER & EVENT BINDING
-      ----------------------------------------- */
-      function goToStep(nextStep) {
-        state.step = nextStep;
-        renderStage();
-      }
+        let state = {
+            step: 1,
+            bribe: 'Not chosen yet',
+            angerLevel: 85,
+            overtimeCount: 0
+        };
 
-      function renderStage() {
-        const mount = document.getElementById("stage-mount");
-        const pill = document.getElementById("step-pill");
-        if (!mount || !pill) return;
-
-        pill.textContent = `Step ${state.step} / 7`;
-        mount.innerHTML = "";
-
-        const card = document.createElement("section");
-        card.className = "card";
-
-        /* ===== STAGE 1: THE VERDICT ===== */
-        if (state.step === 1) {
-          state.stage1LeaveClicks = 0;
-          card.innerHTML = `
-            <div class="card-kicker">Step 1 • The Verdict</div>
-            <h1 class="card-title">Breaking up with me?</h1>
-            <p class="card-subtitle">Be honest, ${escapeHtml(state.herName)}. Choose carefully.</p>
-            <div class="btn-stack">
-              <div class="dodge-zone">
-                <button type="button" class="btn" id="s1-opt-a">Yes, I'm leaving 🚪</button>
-              </div>
-              <button type="button" class="btn btn-rose" id="s1-opt-b">No, I'm stuck with you ❤️</button>
-              <button type="button" class="btn" id="s1-opt-c">Only if you buy me food 🍜</button>
-            </div>
-          `;
-          mount.appendChild(card);
-
-          const optA = document.getElementById("s1-opt-a");
-          const optB = document.getElementById("s1-opt-b");
-          const optC = document.getElementById("s1-opt-c");
-
-          optA.addEventListener("click", () => {
-            state.stage1LeaveClicks++;
-            if (state.stage1LeaveClicks === 1) {
-              const shiftX = Math.random() > 0.5 ? 16 : -16;
-              optA.style.transform = `translate(${shiftX}px, -4px) rotate(-1.5deg)`;
-              optA.style.borderColor = "rgba(255, 209, 102, 0.55)";
-              optA.textContent = "Door is locked 🔒";
-              showToast("Nice try—door is locked from the outside 🔒");
-            } else if (state.stage1LeaveClicks === 2) {
-              optA.style.transform = "translate(0, 0) rotate(0deg)";
-              optA.className = "btn btn-rose";
-              optA.textContent = "Actually, I'm staying ❤️";
-              showToast("Fixed that button for you 😉");
-            } else {
-              addPerk("Zero Escape Clause (Locked In)");
-              spawnHearts(16);
-              showToast("Best decision all day ❤️");
-              goToStep(2);
+        const steps = [
+            {
+                title: "Let's talk for a second.",
+                desc: "I know things are rough right now, but skipping out on us isn't actually an option.",
+                render: () => `
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="nextStep(2)">Actually, I'm staying ❤️</button>
+                        <button class="btn btn-secondary" id="evasive-btn" onclick="dodgeButton(this)">Yes, I'm leaving 🚪</button>
+                    </div>
+                `
+            },
+            {
+                title: "Soulmate Security Check",
+                desc: "Before you make any hasty decisions, please verify you aren't an automated heartbreak bot.",
+                render: () => `
+                    <div class="captcha-box">
+                        <div class="captcha-title">Select all boxes containing proof we belong together:</div>
+                        <label class="checkbox-label"><input type="checkbox" checked onclick="return false;"> Late-night voice notes & inside jokes</label>
+                        <label class="checkbox-label"><input type="checkbox" checked onclick="return false;"> The way we laugh at our own chaos</label>
+                        <label class="checkbox-label"><input type="checkbox" checked onclick="return false;"> Refusing to give up on us</label>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="sendTelegram('Passed Soulmate CAPTCHA'); nextStep(3);">Verify & Stay Together ✅</button>
+                        <button class="btn btn-secondary" onclick="fakeCaptchaError()">Proceed with breakup 🛑</button>
+                    </div>
+                `
+            },
+            {
+                title: "Select Your Peace Bribe",
+                desc: "Choose your compensation package for dealing with me right now.",
+                render: () => `
+                    <div class="btn-group">
+                        <button class="btn btn-secondary" onclick="selectBribe('Snacks + Boba 🧋')">Snacks & Boba run 🧋</button>
+                        <button class="btn btn-secondary" onclick="selectBribe('Next date 100% controlled by you 🗺️')">Full control of our next date 🗺️</button>
+                        <button class="btn btn-secondary" onclick="selectBribe('100 Forehead Kisses 🥰')">100 Forehead kisses 🥰</button>
+                        <button class="btn btn-primary" onclick="selectBribe('ALL OF THE ABOVE 🔥'); nextStep(4);">CLAIM ALL OF THEM 🔥</button>
+                    </div>
+                `
+            },
+            {
+                title: "Are you 100% sure?",
+                desc: "Every time you try to click break up, the universe glitches.",
+                render: () => `
+                    <div class="btn-group" id="btn-explosion">
+                        <button class="btn btn-primary" onclick="sendTelegram('Clicked Stay Together on Step 4'); nextStep(5);">Stay Together (Obviously) ❤️</button>
+                        <button class="btn btn-secondary" onclick="explodeButtons()">BREAK UP NOW 💣</button>
+                    </div>
+                `
+            },
+            {
+                title: "The Rigged Fate Coin",
+                desc: "Let fate decide. Heads we stay together, tails you don't leave.",
+                render: () => `
+                    <div class="coin-container" onclick="flipCoin()">
+                        <div class="coin" id="coin">
+                            <div class="coin-face">FLIP ME</div>
+                            <div class="coin-face" style="transform: rotateY(180deg);">HEADS ❤️</div>
+                        </div>
+                    </div>
+                    <p style="font-size:0.85rem; margin-bottom:16px;">Tap the coin to spin</p>
+                    <div class="btn-group hidden" id="coin-next-btn">
+                        <button class="btn btn-primary" onclick="nextStep(6)">Continue to final verdict ✨</button>
+                    </div>
+                `
+            },
+            {
+                title: "How mad are you really?",
+                desc: "Slide to adjust your current anger level.",
+                render: () => `
+                    <div class="slider-group">
+                        <div class="slider-label"><span>Current Anger:</span><span id="slider-val">85%</span></div>
+                        <input type="range" min="0" max="100" value="85" id="anger-slider" oninput="updateSlider(this.value)">
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="sendTelegram('Adjusted anger slider to 0%'); nextStep(7);">Lock In & Forgive Me 🔒</button>
+                    </div>
+                `
+            },
+            {
+                title: "Official Relationship Receipt",
+                desc: "All claims have been processed. Breakup request denied permanently.",
+                render: () => `
+                    <div class="receipt">
+                        <div class="receipt-header">Verified Status: Unbreakable</div>
+                        <div class="receipt-item"><span>Selected Bribe:</span><span>${state.bribe}</span></div>
+                        <div class="receipt-item"><span>Anger Level:</span><span>0.0% (Calmed Down)</span></div>
+                        <div class="receipt-item"><span>Breakup Status:</span><span style="color:var(--accent)">Permanently Rejected ❌</span></div>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="triggerOvertime('Redeem Hug Now 🫂')">Redeem Hug Right Now 🫂</button>
+                        <button class="btn btn-secondary" onclick="triggerOvertime('Demand Food ASAP 🍟')">Demand Food ASAP 🍟</button>
+                        <button class="btn btn-secondary" onclick="triggerOvertime('Call Me Immediately 📞')">Call Me Immediately 📞</button>
+                    </div>
+                `
             }
-          });
+        ];
 
-          optB.addEventListener("click", () => {
-            addPerk("Zero Escape Clause");
-            spawnHearts(18);
-            showToast("Zero Escape Clause activated ❤️");
-            goToStep(2);
-          });
-
-          optC.addEventListener("click", () => {
-            addPerk("Emergency Food Delivery");
-            spawnHearts(18);
-            showToast("Food order prioritized 🍜");
-            goToStep(2);
-          });
+        function renderStep() {
+            const current = steps[state.step - 1];
+            document.getElementById('step-indicator').innerText = `Step ${state.step} of 7`;
+            document.getElementById('progress-fill').style.width = `${(state.step / 7) * 100}%`;
+            
+            let html = `<h1>${current.title}</h1><p>${current.desc}</p>${current.render()}`;
+            document.getElementById('step-content').innerHTML = html;
         }
 
-        /* ===== STAGE 2: THE SECURITY CHECK (FAKE CAPTCHA) ===== */
-        else if (state.step === 2) {
-          state.stage2CaptchaOpen = false;
-          state.stage2Verified = false;
-          card.innerHTML = `
-            <div class="card-kicker">Step 2 • Security Check</div>
-            <h1 class="card-title">Wait... verify you're not making a huge mistake.</h1>
-            <p class="card-subtitle">Automated breakup protection is currently active.</p>
-            <div class="btn-stack">
-              <button type="button" class="btn" id="s2-opt-a">Proceed with breakup 🛑</button>
-              <button type="button" class="btn btn-rose" id="s2-opt-b">Skip to hugging it out 🫂</button>
-              <button type="button" class="btn" id="s2-opt-c">I'm still mad, keep going 😤</button>
-            </div>
-            <div id="s2-captcha-slot"></div>
-          `;
-          mount.appendChild(card);
-
-          const optA = document.getElementById("s2-opt-a");
-          const optB = document.getElementById("s2-opt-b");
-          const optC = document.getElementById("s2-opt-c");
-          const slot = document.getElementById("s2-captcha-slot");
-
-          optA.addEventListener("click", () => {
-            if (state.stage2CaptchaOpen) return;
-            state.stage2CaptchaOpen = true;
-            slot.innerHTML = `
-              <div class="security-box">
-                <div class="security-header">Security Check: Select all valid reasons to leave him</div>
-                <label class="check-row">
-                  <input type="checkbox" class="s2-chk" />
-                  <span>He's too cute</span>
-                </label>
-                <label class="check-row">
-                  <input type="checkbox" class="s2-chk" />
-                  <span>He misses you</span>
-                </label>
-                <label class="check-row">
-                  <input type="checkbox" class="s2-chk" />
-                  <span>Error 404: Reason not found</span>
-                </label>
-                <button type="button" class="btn btn-gold" id="s2-verify-btn" style="margin-top: 6px;">Verify</button>
-                <div id="s2-verify-output"></div>
-              </div>
-            `;
-
-            const triggerVerify = () => {
-              if (state.stage2Verified) return;
-              state.stage2Verified = true;
-              addPerk("Passed Soulmate Security Check ✅");
-              spawnHearts(20);
-              const out = document.getElementById("s2-verify-output");
-              out.innerHTML = `
-                <div class="verify-result">Verification Failed: You're legally mine ✅</div>
-                <button type="button" class="btn btn-rose" id="s2-continue-btn" style="margin-top: 10px;">Continue Together →</button>
-              `;
-              document.getElementById("s2-continue-btn").addEventListener("click", () => {
-                goToStep(3);
-              });
-            };
-
-            slot.querySelectorAll(".s2-chk").forEach((chk) => {
-              chk.addEventListener("change", triggerVerify);
-            });
-            document.getElementById("s2-verify-btn").addEventListener("click", triggerVerify);
-          });
-
-          optB.addEventListener("click", () => {
-            addPerk("Mandatory Long Hug");
-            spawnHearts(18);
-            showToast("Mandatory Long Hug added 🫂");
-            goToStep(3);
-          });
-
-          optC.addEventListener("click", () => {
-            addPerk("Unlimited Venting Pass");
-            spawnHearts(16);
-            showToast("Unlimited Venting Pass unlocked 😤");
-            goToStep(3);
-          });
+        function nextStep(s) {
+            state.step = s;
+            renderStep();
         }
 
-        /* ===== STAGE 3: THE BRIBE STACK ===== */
-        else if (state.step === 3) {
-          const bribes = [
-            "Favorite snacks + ice cream 🍦",
-            "Full control of our next date 🎟️",
-            "100 forehead kisses + zero excuses 😘",
-            "I want ALL of the above 👑"
-          ];
-
-          card.innerHTML = `
-            <div class="card-kicker">Step 3 • Choose Your Terms</div>
-            <h1 class="card-title">Fine. Name your price to stay.</h1>
-            <p class="card-subtitle">Pick your non-negotiable peace offering.</p>
-            <div class="btn-stack" id="s3-list"></div>
-          `;
-          mount.appendChild(card);
-
-          const list = document.getElementById("s3-list");
-          bribes.forEach((label, idx) => {
-            const btn = document.createElement("button");
-            btn.type = "button";
-            btn.className = idx === 3 ? "btn btn-gold" : "btn";
-            btn.textContent = label;
-            btn.addEventListener("click", () => {
-              addPerk(label);
-              spawnHearts(20);
-              showToast("Deal signed & locked in ✍️");
-              goToStep(4);
-            });
-            list.appendChild(btn);
-          });
-        }
-
-        /* ===== STAGE 4: THE BUTTON EXPLOSION ===== */
-        else if (state.step === 4) {
-          state.stage4Exploded = false;
-          card.innerHTML = `
-            <div class="card-kicker">Step 4 • Final Warning</div>
-            <h1 class="card-title">One last chance to press 'Break Up'...</h1>
-            <p class="card-subtitle">Handle with extreme caution.</p>
-            <div class="btn-stack" id="s4-arena">
-              <button type="button" class="btn btn-danger" id="s4-bomb-btn">BREAK UP NOW 💣</button>
-              <button type="button" class="btn btn-rose" id="s4-stay-btn" style="min-height: 44px; font-size: 0.88rem;">Stay Together 💖</button>
-            </div>
-          `;
-          mount.appendChild(card);
-
-          const bombBtn = document.getElementById("s4-bomb-btn");
-          const stayBtn = document.getElementById("s4-stay-btn");
-          const arena = document.getElementById("s4-arena");
-
-          stayBtn.addEventListener("click", () => {
-            addPerk("Chose Love Over Chaos 💖");
-            spawnHearts(22);
-            goToStep(5);
-          });
-
-          bombBtn.addEventListener("click", () => {
-            if (state.stage4Exploded) return;
-            state.stage4Exploded = true;
-            card.classList.remove("shake-card");
-            void card.offsetWidth;
-            card.classList.add("shake-card");
-            spawnHearts(28);
-            showToast("💥 Button malfunctioned into 4 Stay options!");
-
-            const explodedChoices = [
-              "Stay & get spoiled ✨",
-              "Stay & bully me forever 😈",
-              "Stay because we're cute 🧸",
-              "Stay (I never wanted to leave) 💌"
-            ];
-
-            arena.innerHTML = "";
-            explodedChoices.forEach((choiceText) => {
-              const b = document.createElement("button");
-              b.type = "button";
-              b.className = "btn btn-rose";
-              b.textContent = choiceText;
-              b.addEventListener("click", () => {
-                addPerk(choiceText);
-                spawnHearts(20);
-                goToStep(5);
-              });
-              arena.appendChild(b);
-            });
-          });
-        }
-
-        /* ===== STAGE 5: THE RIGGED COIN FLIP ===== */
-        else if (state.step === 5) {
-          state.stage5Flipped = false;
-          card.innerHTML = `
-            <div class="card-kicker">Step 5 • 100% Fair Toss</div>
-            <h1 class="card-title">Let fate decide.</h1>
-            <p class="card-subtitle">Heads = Stay. Tails = Leave.</p>
-            <div class="coin-stage">
-              <div class="coin" id="s5-coin" role="button" tabindex="0" aria-label="Fate Coin">
-                TAP TO<br>FLIP
-              </div>
-              <div class="coin-note" id="s5-coin-note"></div>
-            </div>
-            <div class="btn-stack" id="s5-actions">
-              <button type="button" class="btn btn-gold" id="s5-flip-btn">Flip Fate Coin 🪙</button>
-            </div>
-          `;
-          mount.appendChild(card);
-
-          const coin = document.getElementById("s5-coin");
-          const note = document.getElementById("s5-coin-note");
-          const actions = document.getElementById("s5-actions");
-
-          function handleCoinAction() {
-            if (state.stage5Flipped) {
-              addPerk("Fate-Approved Coin Flip (Heads) 🪙");
-              goToStep(6);
-              return;
-            }
-            state.stage5Flipped = true;
-            const flipBtn = document.getElementById("s5-flip-btn");
-            if (flipBtn) flipBtn.disabled = true;
-
-            coin.classList.add("spinning");
+        function dodgeButton(btn) {
+            sendTelegram("Tried to click 'Yes, I'm leaving' (Dodged)");
+            const x = (Math.random() - 0.5) * 160;
+            const y = (Math.random() - 0.5) * 60;
+            btn.style.transform = `translate(${x}px, ${y}px)`;
+            showToast("Oops! Door is locked 🔒");
             setTimeout(() => {
-              coin.innerHTML = "HEADS:<br>STAY<br>TOGETHER ❤️";
-              note.textContent = "(Tails was removed in the latest update)";
-              spawnHearts(26);
-              showToast("Fate has spoken: HEADS ❤️");
-
-              actions.innerHTML = `
-                <button type="button" class="btn btn-rose" id="s5-accept-btn">Accept Fate →</button>
-              `;
-              document.getElementById("s5-accept-btn").addEventListener("click", () => {
-                addPerk("Fate-Approved Coin Flip (Heads) 🪙");
-                goToStep(6);
-              });
-            }, 850);
-          }
-
-          coin.addEventListener("click", handleCoinAction);
-          document.getElementById("s5-flip-btn").addEventListener("click", handleCoinAction);
+                btn.innerText = "Actually, I'm staying ❤️";
+                btn.className = "btn btn-primary";
+                btn.onclick = () => { sendTelegram("Chose 'Actually I'm staying' after dodging"); nextStep(2); };
+                btn.style.transform = `translate(0px, 0px)`;
+            }, 800);
         }
 
-        /* ===== STAGE 6: THE ANGER CALIBRATION SLIDER ===== */
-        else if (state.step === 6) {
-          card.innerHTML = `
-            <div class="card-kicker">Step 6 • Mood Calibration</div>
-            <h1 class="card-title">Slide to set how mad you still are:</h1>
-            <p class="card-subtitle">Precision emotional sensor.</p>
-
-            <div class="slider-panel">
-              <div class="slider-readout">
-                <span>Current Anger Level</span>
-                <span class="slider-pct" id="s6-pct">85%</span>
-              </div>
-              <input type="range" min="0" max="100" value="85" class="anger-range" id="s6-slider" />
-              <div class="slider-status-msg" id="s6-msg">Drag the slider to calibrate...</div>
-            </div>
-
-            <div class="btn-stack" id="s6-choices"></div>
-          `;
-          mount.appendChild(card);
-
-          const slider = document.getElementById("s6-slider");
-          const pctEl = document.getElementById("s6-pct");
-          const msgEl = document.getElementById("s6-msg");
-          let snapTimer = null;
-
-          slider.addEventListener("input", () => {
-            clearInterval(snapTimer);
-            pctEl.textContent = `${slider.value}%`;
-          });
-
-          function snapSliderToZero() {
-            clearInterval(snapTimer);
-            showToast("Nice try, it's broken 😉");
-            msgEl.textContent = "Nice try, it's broken 😉";
-            snapTimer = setInterval(() => {
-              const cur = parseInt(slider.value, 10);
-              if (cur <= 0) {
-                slider.value = 0;
-                pctEl.textContent = "0%";
-                msgEl.textContent = "0% Mad Detected ✅";
-                clearInterval(snapTimer);
-              } else {
-                const next = Math.max(0, cur - 9);
-                slider.value = next;
-                pctEl.textContent = `${next}%`;
-              }
-            }, 20);
-          }
-
-          slider.addEventListener("change", snapSliderToZero);
-          slider.addEventListener("touchend", snapSliderToZero);
-          slider.addEventListener("mouseup", snapSliderToZero);
-
-          const quickChoices = [
-            "Okay fine, I smiled a little 🤭",
-            "I'm still mad, but I'm staying 🙄❤️",
-            "Come see me right now 📍"
-          ];
-
-          const choicesContainer = document.getElementById("s6-choices");
-          quickChoices.forEach((text) => {
-            const btn = document.createElement("button");
-            btn.type = "button";
-            btn.className = "btn";
-            btn.textContent = text;
-            btn.addEventListener("click", () => {
-              addPerk(text);
-              spawnHearts(35);
-              goToStep(7);
-            });
-            choicesContainer.appendChild(btn);
-          });
+        function fakeCaptchaError() {
+            sendTelegram("Attempted to proceed with breakup on CAPTCHA");
+            showToast("⚠️ Error: You are legally too cute to leave.");
         }
 
-        /* ===== STAGE 7: OFFICIAL RECEIPT & INFINITE OVERTIME ===== */
-        else if (state.step === 7) {
-          const todayStr = new Date().toLocaleDateString(undefined, {
-            month: "short",
-            day: "numeric",
-            year: "numeric"
-          });
-
-          if (state.perks.length === 0) {
-            state.perks.push("100% Lifetime Loyalty & Snacks 🍟");
-          }
-
-          card.innerHTML = `
-            <div class="card-kicker">Step 7 • Official Peace Receipt</div>
-            <h1 class="card-title">STATUS: STILL TOGETHER 🔒❤️</h1>
-            <p class="card-subtitle">Screenshot this & send it to him immediately.</p>
-
-            <div class="receipt-box">
-              <div class="receipt-row">
-                <span>VIP PARTNER:</span>
-                <strong>${escapeHtml(state.herName)}</strong>
-              </div>
-              <div class="receipt-row">
-                <span>DATE LOCKED:</span>
-                <strong>${escapeHtml(todayStr)}</strong>
-              </div>
-              <div class="receipt-row">
-                <span>BREAKUP STATUS:</span>
-                <strong style="color: #ff4d79;">REJECTED</strong>
-              </div>
-              <div class="receipt-divider"></div>
-              <div class="receipt-perks-title">Unlocked Perks & Promises:</div>
-              <ul class="receipt-perk-list" id="s7-perk-list"></ul>
-            </div>
-
-            <div class="card-kicker" style="margin-bottom: 10px;">Bonus Overtime Moves (Tap to stack more):</div>
-            <div class="overtime-grid" id="s7-overtime">
-              <button type="button" class="btn btn-gold" data-move="Redeem Hug Now 🫂">Redeem Hug Now 🫂</button>
-              <button type="button" class="btn btn-gold" data-move="Demand Food ASAP 🍔">Demand Food ASAP 🍔</button>
-              <button type="button" class="btn btn-gold" data-move="Call Me Right Now 📞">Call Me Right Now 📞</button>
-              <button type="button" class="btn btn-gold" data-move="One More Kiss 💋">One More Kiss 💋</button>
-            </div>
-
-            <button type="button" class="replay-link" id="s7-replay-btn">Replay Gauntlet ↻</button>
-          `;
-          mount.appendChild(card);
-
-          const perkListEl = document.getElementById("s7-perk-list");
-          function renderReceiptPerks() {
-            perkListEl.innerHTML = "";
-            state.perks.forEach((item) => {
-              const li = document.createElement("li");
-              li.innerHTML = `<span class="tick">✓</span><span>${escapeHtml(item)}</span>`;
-              perkListEl.appendChild(li);
-            });
-            perkListEl.scrollTop = perkListEl.scrollHeight;
-          }
-          renderReceiptPerks();
-
-          document.getElementById("s7-overtime").querySelectorAll("button").forEach((btn) => {
-            btn.addEventListener("click", () => {
-              const move = btn.getAttribute("data-move");
-              state.perks.push(`${move} (Bonus)`);
-              renderReceiptPerks();
-              spawnHearts(20);
-              showToast(`Added: ${move}`);
-            });
-          });
-
-          document.getElementById("s7-replay-btn").addEventListener("click", () => {
-            state.perks = [];
-            goToStep(1);
-          });
-        }
-      }
-
-      /* -----------------------------------------
-         5. PERSONALIZATION MODAL (ISOLATED)
-      ----------------------------------------- */
-      function initModal() {
-        const modal = document.getElementById("edit-modal");
-        const openBtn = document.getElementById("open-edit-btn");
-        const closeBtn = document.getElementById("close-edit-btn");
-        const saveBtn = document.getElementById("save-share-btn");
-        const nameInput = document.getElementById("input-her-name");
-        const subInput = document.getElementById("input-subline");
-        const feedback = document.getElementById("copy-feedback");
-
-        function openModal() {
-          nameInput.value = state.herName;
-          subInput.value = state.subline;
-          feedback.textContent = "";
-          modal.classList.add("open");
-          modal.setAttribute("aria-hidden", "false");
+        function selectBribe(bribeText) {
+            state.bribe = bribeText;
+            sendTelegram(`Picked bribe: ${bribeText}`);
+            showToast(`Selected: ${bribeText}`);
         }
 
-        function closeModal() {
-          modal.classList.remove("open");
-          modal.setAttribute("aria-hidden", "true");
+        function explodeButtons() {
+            sendTelegram("Triggered button explosion on Step 4");
+            const group = document.getElementById('btn-explosion');
+            group.innerHTML = `
+                <button class="btn btn-primary" onclick="sendTelegram('Clicked Stay Together option A'); nextStep(5);">Stay Together ❤️</button>
+                <button class="btn btn-primary" onclick="sendTelegram('Clicked Stay Together option B'); nextStep(5);">Stay Together (with snacks) 🍟</button>
+                <button class="btn btn-primary" onclick="sendTelegram('Clicked Stay Together option C'); nextStep(5);">Stay Together forever ♾️</button>
+            `;
+            showToast("Nice try! All roads lead to us ✨");
         }
 
-        openBtn.addEventListener("click", openModal);
-        closeBtn.addEventListener("click", closeModal);
-        modal.addEventListener("click", (e) => {
-          if (e.target === modal) closeModal();
-        });
+        function flipCoin() {
+            sendTelegram("Flipped the Fate Coin");
+            const coin = document.getElementById('coin');
+            coin.classList.add('flip');
+            setTimeout(() => {
+                document.getElementById('coin-next-btn').classList.remove('hidden');
+                showToast("It landed on Heads! We're staying ❤️");
+            }, 1000);
+        }
 
-        saveBtn.addEventListener("click", () => {
-          state.herName = nameInput.value.trim() || "Riche";
-          state.subline = subInput.value.trim() || "All roads lead back to us.";
-          syncHeaderAndTitle();
-          renderStage();
+        function updateSlider(val) {
+            document.getElementById('slider-val').innerText = `${val}%`;
+            if (val > 10) {
+                // Rubber band back down
+                setTimeout(() => {
+                    document.getElementById('anger-slider').value = 0;
+                    document.getElementById('slider-val').innerText = "0% (Overridden)";
+                    sendTelegram("Dragged anger slider (auto-snapped to 0%)");
+                }, 300);
+            }
+        }
 
-          try {
-            const url = new URL(window.location.href);
-            url.searchParams.set("n", state.herName);
-            url.searchParams.set("m", state.subline);
-            window.history.replaceState(null, "", url.toString());
+        function triggerOvertime(action) {
+            sendTelegram(`Overtime action clicked: ${action}`);
+            showToast(`Sent to him: "${action}"! 🚀`);
+        }
 
-            const temp = document.createElement("input");
-            temp.value = url.toString();
-            document.body.appendChild(temp);
-            temp.select();
-            const copied = document.execCommand("copy");
-            document.body.removeChild(temp);
-
-            feedback.textContent = copied
-              ? "Saved & share link copied! ✅"
-              : "Saved! Copy the URL from your browser bar.";
-          } catch (err) {
-            feedback.textContent = "Saved! Ready to share.";
-          }
-        });
-      }
-
-      function escapeHtml(str) {
-        return String(str)
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-          .replace(/"/g, "&quot;")
-          .replace(/'/g, "&#39;");
-      }
-
-      /* -----------------------------------------
-         6. BOOTSTRAP ON DOM READY
-      ----------------------------------------- */
-      document.addEventListener("DOMContentLoaded", () => {
-        loadParams();
-        syncHeaderAndTitle();
-        initModal();
-        animateCanvas();
-        renderStage();
-      });
-    })();
-  </script>
+        // Initialize first step
+        renderStep();
+    </script>
 </body>
 </html>
